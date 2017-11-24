@@ -190,7 +190,7 @@ public class Referee : MultiReferee
 
             known = true;
 
-            return join(getFrameId(), Math.Round(x), Math.Round(y), 0, 0, TYPE_WRECK, radius);
+            return Join(getFrameId(), Math.Round(x), Math.Round(y), 0, 0, TYPE_WRECK, radius);
         }
 
         // Reaper harvesting
@@ -230,7 +230,7 @@ public class Referee : MultiReferee
             known = false;
         }
 
-        public void move(double t)
+        public void Move(double t)
         {
             x += vx * t;
             y += vy * t;
@@ -261,11 +261,11 @@ public class Referee : MultiReferee
         public string toFrameData()
         {
             if (known)
-                return string.Join(getFrameId(), Math.Round(x), Math.Round(y), Math.Round(vx), Math.Round(vy));
+                return Join(getFrameId(), Math.Round(x), Math.Round(y), Math.Round(vx), Math.Round(vy));
 
             known = true;
 
-            return string.Join(getFrameId(), Math.Round(x), Math.Round(y), Math.Round(vx), Math.Round(vy), type, Math.Round(radius));
+            return Join(getFrameId(), Math.Round(x), Math.Round(y), Math.Round(vx), Math.Round(vy), type, Math.Round(radius));
         }
 
         public void thrust(Point p, int power)
@@ -539,13 +539,13 @@ public class Referee : MultiReferee
             return new Wreck(round(x), round(y), water, radius);
         }
 
-        public bool isFull() {
+        public bool IsFull() {
             return water >= size;
         }
 
         public void play() {
             // Try to leave the map
-            if (isFull())
+            if (IsFull())
                 thrust(WATERTOWN, -TANKER_THRUST);
 
             // Try to reach watertown
@@ -596,7 +596,7 @@ public class Referee : MultiReferee
                 throw new TooFarException();
 
             player.rage -= skillCost;
-            return skillImpl(p);
+            return ActivateSkillEffect(p);
         }
 
         public new string toFrameData()
@@ -604,7 +604,7 @@ public class Referee : MultiReferee
             if (known)
                 return base.toFrameData();
 
-            return join(base.toFrameData(), player.index);
+            return Join(base.toFrameData(), player.index);
         }
 
         public override int getPlayerIndex()
@@ -612,9 +612,9 @@ public class Referee : MultiReferee
             return player.index;
         }
 
-        public abstract SkillEffect skillImpl(Point p);
+        public abstract SkillEffect ActivateSkillEffect(Point p);
 
-        public void setWantedThrust(Point target, int power)
+        public void SetWantedThrust(Point target, int power)
         {
             if (power < 0)
                 power = 0;
@@ -644,7 +644,7 @@ public class Referee : MultiReferee
             skillActive = REAPER_SKILL_ACTIVE;
         }
 
-        public override SkillEffect skillImpl(Point p) =>
+        public override SkillEffect ActivateSkillEffect(Point p) =>
             new ReaperSkillEffect(TYPE_REAPER_SKILL_EFFECT, p.x, p.y, REAPER_SKILL_RADIUS, REAPER_SKILL_DURATION, REAPER_SKILL_ORDER, this);
 }
 
@@ -660,7 +660,7 @@ public class Referee : MultiReferee
             skillActive = DESTROYER_SKILL_ACTIVE;
         }
 
-        public override SkillEffect skillImpl(Point p) =>
+        public override SkillEffect ActivateSkillEffect(Point p) =>
             new DestroyerSkillEffect(TYPE_DESTROYER_SKILL_EFFECT, p.x, p.y, DESTROYER_SKILL_RADIUS, DESTROYER_SKILL_DURATION,
                     DESTROYER_SKILL_ORDER, this);
     }
@@ -677,7 +677,7 @@ public class Referee : MultiReferee
             skillActive = DOOF_SKILL_ACTIVE;
         }
 
-        public override SkillEffect skillImpl(Point p) =>
+        public override SkillEffect ActivateSkillEffect(Point p) =>
             new DoofSkillEffect(TYPE_DOOF_SKILL_EFFECT, p.x, p.y, DOOF_SKILL_RADIUS, DOOF_SKILL_DURATION, DOOF_SKILL_ORDER, this);
 
         // With flame effects! Yeah!
@@ -787,22 +787,22 @@ public class Referee : MultiReferee
             this.order = order;
         }
 
-        public void apply(List<Unit> units)
+        public void Apply(List<Unit> units)
         {
             duration -= 1;
-            applyImpl(units.Where(u => isInRange(u, radius + u.radius)).ToList());
+            ApplySkillEffect(units.Where(u => isInRange(u, radius + u.radius)).ToList());
         }
 
-        public string toFrameData() {
+        public string ToFrameData() {
             if (known)
                 return id.ToString();
 
             known = true;
 
-            return join(id, Math.Round(x), Math.Round(y), looter.id, 0, type, Math.Round(radius));
+            return Join(id, Math.Round(x), Math.Round(y), looter.id, 0, type, Math.Round(radius));
         }
 
-        public abstract void applyImpl(List<Unit> units);
+        public abstract void ApplySkillEffect(List<Unit> units);
 
         public override int GetHashCode() => base.GetHashCode();
 
@@ -822,7 +822,7 @@ public class Referee : MultiReferee
             base(type, x, y, radius, duration, order, reaper) { }
 
         // Increase mass
-        public override void applyImpl(List<Unit> units)
+        public override void ApplySkillEffect(List<Unit> units)
         {
             units.ForEach(u => u.mass += REAPER_SKILL_MASS_BONUS);
         }
@@ -834,7 +834,7 @@ public class Referee : MultiReferee
             base(type, x, y, radius, duration, order, destroyer) {  }
 
         // Push units
-        public override void applyImpl(List<Unit> units)
+        public override void ApplySkillEffect(List<Unit> units)
         {
             units.ForEach(u => u.thrust(this, -DESTROYER_NITRO_GRENADE_POWER));
         }
@@ -846,7 +846,7 @@ public class Referee : MultiReferee
             base(type, x, y, radius, duration, order, doof) { }
 
         // Nothing to do now
-        public override void applyImpl(List<Unit> units) { }
+        public override void ApplySkillEffect(List<Unit> units) { }
     }
 
     // Round away from zero
@@ -857,7 +857,7 @@ public class Referee : MultiReferee
     }
 
     // Join multiple object into a space separated string
-    public static string join(params object[] values)
+    public static string Join(params object[] values)
     {
         return string.Join(" ", values);
     }
@@ -929,7 +929,7 @@ public class Referee : MultiReferee
         return null;
     }
 
-    void newFrame(double t)
+    void NewFrame(double t)
     {
         frameData.Add("#" + t.ToString("F5"));
     }
@@ -946,22 +946,22 @@ public class Referee : MultiReferee
 
     void addToFrame(SkillEffect s)
     {
-        frameData.Add(s.toFrameData());
+        frameData.Add(s.ToFrameData());
     }
 
     void addDeadToFrame(SkillEffect s)
     {
-        frameData.Add(join(s.toFrameData(), "d"));
+        frameData.Add(Join(s.ToFrameData(), "d"));
     }
 
     void addDeadToFrame(Unit u)
     {
-        frameData.Add(join(u.toFrameData(), "d"));
+        frameData.Add(Join(u.toFrameData(), "d"));
     }
 
     void addDeadToFrame(Wreck w)
     {
-        frameData.Add(join(w.toFrameData(), "d"));
+        frameData.Add(Join(w.toFrameData(), "d"));
     }
 
     void snapshot()
@@ -971,7 +971,7 @@ public class Referee : MultiReferee
         });
 
         frameData.AddRange(wrecks.Select(w => w.toFrameData()).ToList());
-        frameData.AddRange(skillEffects.Select(s => s.toFrameData()).ToList());
+        frameData.AddRange(skillEffects.Select(s => s.ToFrameData()).ToList());
     }
 
     protected override void initReferee(int playerCount, Properties prop)
@@ -1079,7 +1079,7 @@ public class Referee : MultiReferee
         }
 
         adjust();
-        newFrame(1.0);
+        NewFrame(1.0);
         snapshot();
     }
 
@@ -1101,7 +1101,7 @@ public class Referee : MultiReferee
         return lines.ToArray();
     }
 
-    protected override void prepare(int round)
+    protected override void PrepareRound(int round)
     {
         frameData.Clear();
         looters.ForEach(x => x.reset());
@@ -1152,7 +1152,7 @@ public class Referee : MultiReferee
         List<string> unitsLines = new List<string>();
 
         // Looters and tankers
-        unitsLines.AddRange(units.Select(u => join(
+        unitsLines.AddRange(units.Select(u => Join(
             u.id, 
             u.type, 
             getPlayerId(u.getPlayerIndex(), playerIdx), 
@@ -1165,9 +1165,9 @@ public class Referee : MultiReferee
             u.getExtraInput(), 
             u.getExtraInput2())));
         // Wrecks
-        unitsLines.AddRange(wrecks.Select(w => join(w.id, TYPE_WRECK, -1, -1, round(w.radius), round(w.x), round(w.y), 0, 0, w.water, -1)));
+        unitsLines.AddRange(wrecks.Select(w => Join(w.id, TYPE_WRECK, -1, -1, round(w.radius), round(w.x), round(w.y), 0, 0, w.water, -1)));
         // Skill effects
-        unitsLines.AddRange(skillEffects.Select(s => join(s.id, s.type, -1, -1, round(s.radius), round(s.x), round(s.y), 0, 0, s.duration, -1)));
+        unitsLines.AddRange(skillEffects.Select(s => Join(s.id, s.type, -1, -1, round(s.radius), round(s.x), round(s.y), 0, 0, s.duration, -1)));
 
         lines.Add(unitsLines.Count);
         lines.AddRange(unitsLines);
@@ -1260,7 +1260,7 @@ public class Referee : MultiReferee
                     int y = int.Parse(match.Groups["y"].Value);
                     int power = int.Parse(match.Groups["power"].Value);
 
-                    looter.setWantedThrust(new Point(x, y), power);
+                    looter.SetWantedThrust(new Point(x, y), power);
                     matchMessage(looter, match);
                     continue;
                 }
@@ -1317,7 +1317,7 @@ public class Referee : MultiReferee
  
     // Get the next collision for the current round
     // All units are tested
-    Collision getNextCollision()
+    Collision GetNextCollision()
     {
         Collision result = NULL_COLLISION;
 
@@ -1348,7 +1348,7 @@ public class Referee : MultiReferee
     }
 
     // Play a collision
-    void playCollision(Collision collision)
+    void PlayCollision(Collision collision)
     {
         if (collision.b == null)
         {
@@ -1391,7 +1391,7 @@ public class Referee : MultiReferee
     {
         // Apply skill effects
         foreach (var effect in skillEffects)
-            effect.apply(units);
+            effect.Apply(units);
 
         // Apply thrust for tankers
         foreach (var tanker in tankers)
@@ -1407,33 +1407,33 @@ public class Referee : MultiReferee
 
         // Play the round. Stop at each collisions and play it. Reapeat until t > 1.0
 
-        Collision collision = getNextCollision();
+        Collision collision = GetNextCollision();
 
         double delta = 0;
 
         while (collision.t + t <= 1.0)
         {
             delta = collision.t;
-            units.ForEach(u => u.move(delta));
+            units.ForEach(u => u.Move(delta));
             t += collision.t;
 
-            newFrame(t);
+            NewFrame(t);
 
-            playCollision(collision);
+            PlayCollision(collision);
 
-            collision = getNextCollision();
+            collision = GetNextCollision();
         }
 
         // No more collision. Move units until the end of the round
         delta = 1.0 - t;
-        units.ForEach(u => u.move(delta));
+        units.ForEach(u => u.Move(delta));
 
         List<Tanker> tankersToRemove = new List<Tanker>();
 
         foreach (var tanker in tankers)
         {
             double distance = tanker.Distance(WATERTOWN);
-            bool full = tanker.isFull();
+            bool full = tanker.IsFull();
 
             if (distance <= WATERTOWN_RADIUS && !full)
             {
@@ -1447,7 +1447,7 @@ public class Referee : MultiReferee
             }
         }
 
-        newFrame(1.0);
+        NewFrame(1.0);
         snapshot();
 
         if (!(tankersToRemove.Count == 0)) {
@@ -1626,12 +1626,12 @@ public class Referee : MultiReferee
         players[playerIdx].kill();
     }
 
-    protected override int getMaxRoundCount(int playerCount)
+    protected override int GetMaxRoundCount(int playerCount)
     {
         return 200;
     }
 
-    protected override bool isTurnBasedGame()
+    protected override bool IsTurnBasedGame()
     {
         return false;
     }
@@ -1711,7 +1711,11 @@ abstract public class MultiReferee : AbstractReferee
 
 abstract public class AbstractReferee
 {
-    private static readonly Regex HEADER_PATTERN = new Regex("\\[\\[(?<cmd>.+)\\] ?(?<lineCount>[0-9]+)\\]");
+    private static readonly Regex HEADER_PATTERN = new Regex(
+        @"^\[\[(?<cmd>.+)\] ?(?<lineCount>[0-9]+)\]", 
+        RegexOptions.ExplicitCapture | RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase
+    );
+
     private static readonly string LOST_PARSING_REASON_CODE = "INPUT";
     private static readonly string LOST_PARSING_REASON = "Failure: invalid input";
 
@@ -1960,23 +1964,23 @@ abstract public class AbstractReferee
             players.Each((x, i) => players[i] = new PlayerStatus(i));
 
             playerStatus = players[0];
-            currentPlayer = nextPlayer = 1;
+            currentPlayer = nextPlayer = playerCount;
             round = -1;
             newRound = true;
 
             while (true)
             {
                 lastPlayer = playerStatus;
-                playerStatus = selectNextPlayer();
+                playerStatus = SelectNextPlayer();
 
-                if (this.round >= getMaxRoundCount(this.playerCount))
+                if (round >= GetMaxRoundCount(playerCount))
                     throw new GameOverException("maxRoundsCountReached");
 
                 if (newRound)
                 {
-                    prepare(round);
+                    PrepareRound(round);
 
-                    if (!isTurnBasedGame())
+                    if (!IsTurnBasedGame())
                         foreach (var player in players)
                             if (!player.lost)
                                 player.nextInput = getInputForPlayer(round, player.id);
@@ -1990,7 +1994,7 @@ abstract public class AbstractReferee
                     foreach (var line in getInitInputForPlayer(nextPlayer))
                         output.WriteLine(line);
 
-                if (isTurnBasedGame())
+                if (IsTurnBasedGame())
                     foreach (var line in getInputForPlayer(round, nextPlayer))
                         output.WriteLine(line);
                 else
@@ -2031,7 +2035,7 @@ abstract public class AbstractReferee
             reason = e.getReason();
             error.WriteLine(reason);
             error.Flush();
-            prepare(round);
+            PrepareRound(round);
             updateScores();
             var scores = players.Select(x => x.score).Distinct();
 
@@ -2056,20 +2060,21 @@ abstract public class AbstractReferee
         }
     }
 
-    private PlayerStatus selectNextPlayer()
+    private PlayerStatus SelectNextPlayer()
     {
         currentPlayer = nextPlayer;
         newRound = false;
 
-            do {
+        do {
             ++nextPlayer;
             if (nextPlayer >= playerCount)
             {
                 nextround();
                 nextPlayer = 0;
             }
-        } while (this.players [nextPlayer].lost || this.players [nextPlayer].win);
-            return players [nextPlayer];
+        } while (players[nextPlayer].lost || players[nextPlayer].win);
+
+        return players[nextPlayer];
     }
 
     protected string getColoredReason(bool error, string reason)
@@ -2119,7 +2124,7 @@ abstract public class AbstractReferee
             }
         }
 
-        if (newRound || isTurnBasedGame())
+        if (newRound || IsTurnBasedGame())
         {
             data.AddRange(getFrameDataForView(round, frame, newRound));
         }
@@ -2130,7 +2135,7 @@ abstract public class AbstractReferee
     private void dumpInfos()
     {
         OutputData data = new OutputData(OutputCommand.INFOS);
-        if (reason != null && isTurnBasedGame())
+        if (reason != null && IsTurnBasedGame())
         {
             data.Add(getColoredReason(true, reason));
         }
@@ -2173,7 +2178,7 @@ abstract public class AbstractReferee
                 summary.AddRange(getGameSummary(round));
             }
 
-            if (!isTurnBasedGame() && reason != null)
+            if (!IsTurnBasedGame() && reason != null)
             {
                 summary.Add(getColoredReason(true, reason));
             }
@@ -2181,7 +2186,7 @@ abstract public class AbstractReferee
             output.WriteLine(summary);
         }
 
-        if (tooltips.Count > 0 && (newRound || isTurnBasedGame()))
+        if (tooltips.Count > 0 && (newRound || IsTurnBasedGame()))
         {
             data = new OutputData(OutputCommand.TOOLTIP);
             foreach (var tooltip in tooltips)
@@ -2219,7 +2224,7 @@ abstract public class AbstractReferee
         {
             data.AddRange(getInitInputForPlayer(nextPlayer));
         }
-        if (isTurnBasedGame())
+        if (IsTurnBasedGame())
         {
             players[nextPlayer].nextInput = getInputForPlayer(round, nextPlayer);
         }
@@ -2255,7 +2260,7 @@ abstract public class AbstractReferee
         return 150;
     }
 
-    protected virtual int getMaxRoundCount(int playerCount)
+    protected virtual int GetMaxRoundCount(int playerCount)
     {
         return 400;
     }
@@ -2303,7 +2308,7 @@ abstract public class AbstractReferee
      */
     protected abstract void populateMessages(Properties p);
 
-    protected virtual bool isTurnBasedGame()
+    protected virtual bool IsTurnBasedGame()
     {
         return false;
     }
@@ -2339,7 +2344,7 @@ abstract public class AbstractReferee
      */
     protected abstract void updateGame(int round);
 
-    protected abstract void prepare(int round);
+    protected abstract void PrepareRound(int round);
 
     protected abstract bool isPlayerDead(int playerIdx);
 
