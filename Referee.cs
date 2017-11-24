@@ -8,8 +8,8 @@ using System.Globalization;
 
 public class Referee : MultiReferee
 {
-    public static int PLAYER_COUNT = 1;
-    static int GAME_VERSION = 0;
+    public static int PLAYER_COUNT = 3;
+    static int GAME_VERSION = 3;
 
     static bool SPAWN_WRECK = false;
     static int LOOTER_COUNT = 3;
@@ -1641,10 +1641,6 @@ public class Referee : MultiReferee
 
     public static void Main(string[] args)
     {
-        // Modified from referee to read first the game version and then the player count
-        GAME_VERSION = int.Parse(Console.ReadLine());
-        PLAYER_COUNT = int.Parse(Console.ReadLine());
-
         switch (GAME_VERSION) {
             case 0:
                 SPAWN_WRECK = true;
